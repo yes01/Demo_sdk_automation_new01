@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <style>body {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 12px;
+	/* do not increase min-width as some may use split screens */
+	min-width: 800px;
+	color: #999;
+}
+
+h1 {
+	font-size: 24px;
+	color: black;
+}
+
+h2 {
+	font-size: 16px;
+	color: black;
+}
+
+p {
+    color: black;
+}
+
+a {
+	color: #999;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+
+#environment td {
+	padding: 5px;
+	border: 1px solid #E6E6E6;
+}
+
+#environment tr:nth-child(odd) {
+	background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed, .passed .col-result {
+	color: green;
+}
+span.skipped, span.xfailed, span.rerun, .skipped .col-result, .xfailed .col-result, .rerun .col-result {
+	color: orange;
+}
+span.error, span.failed, span.xpassed, .error .col-result, .failed .col-result, .xpassed .col-result  {
+	color: red;
+}
+
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+
+#results-table {
+	border: 1px solid #e6e6e6;
+	color: #999;
+	font-size: 12px;
+	width: 100%
+}
+
+#results-table th, #results-table td {
+	padding: 5px;
+	border: 1px solid #E6E6E6;
+	text-align: left
+}
+#results-table th {
+	font-weight: bold
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+
+.log:only-child {
+	height: inherit
+}
+.log {
+	background-color: #e6e6e6;
+	border: 1px solid #e6e6e6;
+	color: black;
+	display: block;
+	font-family: "Courier New", Courier, monospace;
+	height: 230px;
+	overflow-y: scroll;
+	padding: 5px;
+	white-space: pre-wrap
+}
+div.image {
+	border: 1px solid #e6e6e6;
+	float: right;
+	height: 240px;
+	margin-left: 5px;
+	overflow: hidden;
+	width: 320px
+}
+div.image img {
+	width: 320px
+}
+div.video {
+	border: 1px solid #e6e6e6;
+	float: right;
+	height: 240px;
+	margin-left: 5px;
+	overflow: hidden;
+	width: 320px
+}
+div.video video {
+	overflow: hidden;
+	width: 320px;
+    height: 240px;
+}
+.collapsed {
+	display: none;
+}
+.expander::after {
+	content: " (show details)";
+	color: #BBB;
+	font-style: italic;
+	cursor: pointer;
+}
+.collapser::after {
+	content: " (hide details)";
+	color: #BBB;
+	font-style: italic;
+	cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+	cursor: pointer;
+}
+
+.sort-icon {
+	font-size: 0px;
+	float: left;
+	margin-right: 5px;
+	margin-top: 5px;
+	/*triangle*/
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+}
+
+.inactive .sort-icon {
+	/*finish triangle*/
+	border-top: 8px solid #E6E6E6;
+}
+
+.asc.active .sort-icon {
+	/*finish triangle*/
+	border-bottom: 8px solid #999;
+}
+
+.desc.active .sort-icon {
+	/*finish triangle*/
+	border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function find_all(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sort_column(elem) {
+    toggle_sort_states(elem);
+    var colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    var key;
+    if (elem.classList.contains('numeric')) {
+        key = key_num;
+    } else if (elem.classList.contains('result')) {
+        key = key_result;
+    } else {
+        key = key_alpha;
+    }
+    sort_table(elem, key(colIndex));
+}
+
+function show_all_extras() {
+    find_all('.col-result').forEach(show_extras);
+}
+
+function hide_all_extras() {
+    find_all('.col-result').forEach(hide_extras);
+}
+
+function show_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.remove("collapsed");
+    expandcollapse.classList.remove("expander");
+    expandcollapse.classList.add("collapser");
+}
+
+function hide_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.add("collapsed");
+    expandcollapse.classList.remove("collapser");
+    expandcollapse.classList.add("expander");
+}
+
+function show_filters() {
+    var filter_items = document.getElementsByClassName('filter');
+    for (var i = 0; i < filter_items.length; i++)
+        filter_items[i].hidden = false;
+}
+
+function add_collapse() {
+    // Add links for show/hide all
+    var resulttable = find('table#results-table');
+    var showhideall = document.createElement("p");
+    showhideall.innerHTML = '<a href="javascript:show_all_extras()">Show all details</a> / ' +
+                            '<a href="javascript:hide_all_extras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    find_all('.col-result').forEach(function(elem) {
+        var collapsed = get_query_parameter('collapsed') || 'Passed';
+        var extras = elem.parentNode.nextElementSibling;
+        var expandcollapse = document.createElement("span");
+        if (extras.classList.contains("collapsed")) {
+            expandcollapse.classList.add("expander")
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add("collapsed");
+            expandcollapse.classList.add("expander");
+        } else {
+            expandcollapse.classList.add("collapser");
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener("click", function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains("collapsed")) {
+                show_extras(event.currentTarget);
+            } else {
+                hide_extras(event.currentTarget);
+            }
+        });
+    })
+}
+
+function get_query_parameter(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () {
+    reset_sort_headers();
+
+    add_collapse();
+
+    show_filters();
+
+    sort_column(find('.initial-sort'));
+
+    find_all('.sortable').forEach(function(elem) {
+        elem.addEventListener("click",
+                              function(event) {
+                                  sort_column(elem);
+                              }, false)
+    });
+
+};
+
+function sort_table(clicked, key_func) {
+    var rows = find_all('.results-table-row');
+    var reversed = !clicked.classList.contains('asc');
+    var sorted_rows = sort(rows, key_func, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    var thead = document.getElementById("results-table-head");
+    document.getElementById('results-table').remove();
+    var parent = document.createElement("table");
+    parent.id = "results-table";
+    parent.appendChild(thead);
+    sorted_rows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName("BODY")[0].appendChild(parent);
+}
+
+function sort(items, key_func, reversed) {
+    var sort_array = items.map(function(item, i) {
+        return [key_func(item), i];
+    });
+
+    sort_array.sort(function(a, b) {
+        var key_a = a[0];
+        var key_b = b[0];
+
+        if (key_a == key_b) return 0;
+
+        if (reversed) {
+            return (key_a < key_b ? 1 : -1);
+        } else {
+            return (key_a > key_b ? 1 : -1);
+        }
+    });
+
+    return sort_array.map(function(item) {
+        var index = item[1];
+        return items[index];
+    });
+}
+
+function key_alpha(col_index) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[col_index].firstChild.data.toLowerCase();
+    };
+}
+
+function key_num(col_index) {
+    return function(elem) {
+        return parseFloat(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function key_result(col_index) {
+    return function(elem) {
+        var strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+                       'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function reset_sort_headers() {
+    find_all('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    find_all('.sortable').forEach(function(elem) {
+        var icon = document.createElement("div");
+        icon.className = "sort-icon";
+        icon.textContent = "vvv";
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove("desc", "active");
+        elem.classList.add("asc", "inactive");
+    });
+}
+
+function toggle_sort_states(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        reset_sort_headers();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function is_all_rows_hidden(value) {
+  return value.hidden == false;
+}
+
+function filter_table(elem) {
+    var outcome_att = "data-test-result";
+    var outcome = elem.getAttribute(outcome_att);
+    class_outcome = outcome + " results-table-row";
+    var outcome_rows = document.getElementsByClassName(class_outcome);
+
+    for(var i = 0; i < outcome_rows.length; i++){
+        outcome_rows[i].hidden = !elem.checked;
+    }
+
+    var rows = find_all('.results-table-row').filter(is_all_rows_hidden);
+    var all_rows_hidden = rows.length == 0 ? true : false;
+    var not_found_message = document.getElementById("not-found-message");
+    not_found_message.hidden = !all_rows_hidden;
+}
+</script>
+    <h1>report.html</h1>
+    <p>Report generated on 15-Oct-2020 at 16:56:41 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v2.1.1</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>JAVA_HOME</td>
+        <td>C:\Program Files\Java\jdk1.8.0_221</td></tr>
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "0.13.1", "py": "1.8.1", "pytest": "5.4.3"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-10-10.0.18362-SP0</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"allure-pytest": "2.8.16", "flaky": "3.5.3", "html": "2.1.1", "metadata": "1.9.0", "rerunfailures": "8.0", "variables": "1.9.0"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.8.1</td></tr>
+      <tr>
+        <td>项目名称</td>
+        <td>Demo_sdk(UI)自动化测试</td></tr></table>
+    <h2>Summary</h2>
+    <p>所属部门: 研发部平台组</p>
+    <p>测试人员: 李翔</p>
+    <p>1 tests ran in 60.51 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">1 passed</span>, <input checked="true" class="filter" data-test-result="skipped" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">6 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>, <input checked="true" class="filter" data-test-result="rerun" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="rerun">0 rerun</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable numeric" col="duration">Duration</th>
+          <th>Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">TestCases/test_binding.py::TestBinding::test_bindemail_fail[0011@qq.com-qqqqqq]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">(&#x27;TestCases\\test_binding.py&#x27;, 27, &#x27;Skipped: no way of currently testing this&#x27;)<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">TestCases/test_binding.py::TestBinding::test_bindemail_fail[00112@qq.com-6KCDPX]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">(&#x27;TestCases\\test_binding.py&#x27;, 27, &#x27;Skipped: no way of currently testing this&#x27;)<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">TestCases/test_binding.py::TestBinding::test_bindphone_success[99633331]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">(&#x27;TestCases\\test_binding.py&#x27;, 40, &#x27;Skipped: no way of currently testing this&#x27;)<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">TestCases/test_binding.py::TestBinding::test_bindphone_fail[98833329-qqqqqq]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">(&#x27;TestCases\\test_binding.py&#x27;, 54, &#x27;Skipped: no way of currently testing this&#x27;)<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">TestCases/test_binding.py::TestBinding::test_bindphone_fail[98833329-6KCDPX]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">(&#x27;TestCases\\test_binding.py&#x27;, 54, &#x27;Skipped: no way of currently testing this&#x27;)<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">TestCases/test_binding.py::TestBinding::test_bindfacebook_success[17620131946-123456......]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">(&#x27;TestCases\\test_binding.py&#x27;, 68, &#x27;Skipped: no way of currently testing this&#x27;)<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">TestCases/test_binding.py::TestBinding::test_bindemail_success[00114@qq.com]</td>
+          <td class="col-duration">24.19</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log setup------------------------------- <br/>[32mINFO    [0m BasePage:conftest.py:34 -----开始执行当前用例-----
+[32mINFO    [0m BasePage:loginsafety_page.py:12 -----------------------SDK授权初始化_登录功能-----------------------
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/init_sdk&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:72 点击元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/init_sdk&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：0秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:72 点击元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：0秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:72 点击元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/login&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：0秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/login&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:72 点击元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/login&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：4秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:72 点击元素：(&#x27;id&#x27;, &#x27;com.crazycube.hkmahjongtycoon.app:id/button3&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:59 坐标查找元素：[[(65, 1693)], 500]成功
+[32mINFO    [0m BasePage:basepage.py:59 坐标查找元素：[[(508, 1683)], 500]成功<br/> -------------------------------Captured log call-------------------------------- <br/>[32mINFO    [0m BasePage:binding_page.py:16 -----------------------测试安全信息页面-绑定账号功能-----------------------
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;xpath&#x27;, &#x27;//*[@id=&quot;__next&quot;]/div/div/div[2]/div[2]/div[2]&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：0秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;xpath&#x27;, &#x27;//*[@id=&quot;__next&quot;]/div/div/div[2]/div[2]/div[2]&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:72 点击元素：(&#x27;xpath&#x27;, &#x27;//*[@id=&quot;__next&quot;]/div/div/div[2]/div[2]/div[2]&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;xpath&#x27;, &#x27;//*[@placeholder=&quot;請輸入郵箱&quot;]&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：0秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;xpath&#x27;, &#x27;//*[@placeholder=&quot;請輸入郵箱&quot;]&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:85 成功清空输入框内容
+[32mINFO    [0m BasePage:basepage.py:87 输入的文本内容为：00114@qq.com
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;xpath&#x27;, &#x27;//*[@class=&quot;d1_d2&quot;]&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：0秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;xpath&#x27;, &#x27;//*[@class=&quot;d1_d2&quot;]&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:72 点击元素：(&#x27;xpath&#x27;, &#x27;//*[@class=&quot;d1_d2&quot;]&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:176 连接CubeAgePlatform库中AuthenticationCode表成功，获取00114@qq.com验证码：NH3UWX
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;xpath&#x27;, &#x27;//*[@placeholder=&quot;請輸入驗證碼&quot;]&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：0秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;xpath&#x27;, &#x27;//*[@placeholder=&quot;請輸入驗證碼&quot;]&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:85 成功清空输入框内容
+[32mINFO    [0m BasePage:basepage.py:87 输入的文本内容为：NH3UWX
+[32mINFO    [0m BasePage:basepage.py:35 等待元素(&#x27;xpath&#x27;, &#x27;//*[@class=&quot;Btn4WvNewComp_text&quot;]&#x27;)可见
+[32mINFO    [0m BasePage:basepage.py:36 等待时长为：0秒
+[32mINFO    [0m BasePage:basepage.py:45 查找元素：(&#x27;xpath&#x27;, &#x27;//*[@class=&quot;Btn4WvNewComp_text&quot;]&#x27;)成功
+[32mINFO    [0m BasePage:basepage.py:72 点击元素：(&#x27;xpath&#x27;, &#x27;//*[@class=&quot;Btn4WvNewComp_text&quot;]&#x27;)成功
+[32mINFO    [0m BasePage:binding_page.py:118 ********安全信息页面_绑定邮箱功能：绑定的邮箱为00114@qq.com【断言成功】********
+[32mINFO    [0m BasePage:basepage.py:132 demo截图文件保存在：C:\workspace\Demo_sdk_automation_new\Outputs\screenshots\绑定邮箱断言成功截图_2020-10-15-16_56_37.png
+[32mINFO    [0m BasePage:binding_page.py:103 修改通过email绑定的数据库相关信息
+[32mINFO    [0m BasePage:basepage.py:200 CubeAgePlatform数据库进行update操作【执行成功】<br/></div></td></tr></tbody></table></body></html>
