@@ -31,7 +31,7 @@ def access_demo(request):
     desired_caps['appActivity'] = 'com.crazycube.sdk.demo.MainActivity'
     # desired_caps['appPackage'] = 'com.crazycube.hkmahjongtycoon.app'
     # desired_caps['appActivity'] = 'com.crazycube.hkmahjongtycoon.app.MainActivity'
-    # desired_caps['noReset'] = 'True'
+    desired_caps['noReset'] = 'True'
     driver = webdriver.Remote('http://127.0.0.1:4723/wd/hub', desired_caps)
     logger.info('-----开始执行当前用例-----')
 
