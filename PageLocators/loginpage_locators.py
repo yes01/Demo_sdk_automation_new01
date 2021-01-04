@@ -22,7 +22,7 @@ class LoginPageLocators:
 
     # 购买
     bug_submit = (By.ID, "com.crazycube.sdk.demo:id/buy_gold")
-    click_confirm_payment = (By.XPATH, '//*[@class="Btn4WvComp" and contains(text(),"確認支付")]')  # 确认支付按钮
+    click_confirm_payment = (By.XPATH, '//*[@class="Btn4WvComp" and contains(text(),"Payment")]')  # 確認支付按钮
     x_y_07 = [[(500, 1700)], 500]# google支付
 
     # 平台浮标
