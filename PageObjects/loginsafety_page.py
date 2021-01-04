@@ -31,6 +31,20 @@ class LoginsafetyPage(BasePage):
         self.Coordinate_positioning(loc.x_y_02)
         self.switch_scenes()
 
+    # SDK初始化_登录功能_新
+    @allure.step("SDK授权初始化_登录功能_新")
+    def is_authorize_login_safety_new(self):
+        logger.info("-----------------------SDK授权初始化_登录功能_新-----------------------")
+        doc = "SDK授权初始化_登录功能_新"
+        self.wait_eleVisible(loc.initialization_sdk_03, doc=doc)
+        self.click_element(loc.initialization_sdk_03, doc)
+        self.wait_eleVisible(loc.initialization_sdk_04, doc=doc)
+        self.click_element(loc.initialization_sdk_04, doc)
+        self.wait_eleVisible(loc.initialization_sdk_04, doc=doc)
+        self.click_element(loc.initialization_sdk_04, doc)
+        time.sleep(3)
+
+
     # SDK初始化_登录功能
     @allure.step("SDK未授权初始化_登录功能")
     def not_authorize_login_safety(self):

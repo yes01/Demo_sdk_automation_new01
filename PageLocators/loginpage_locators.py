@@ -12,11 +12,18 @@ class LoginPageLocators:
     # 初始化
     initialization_sdk_01 = (By.ID, "com.crazycube.hkmahjongtycoon.app:id/init_sdk")
     initialization_sdk_02 = (By.ID, "com.crazycube.hkmahjongtycoon.app:id/button3")
+    initialization_sdk_03 = (By.ID, "com.crazycube.sdk.demo:id/init_sdk")
+    initialization_sdk_04 = (By.ID, "com.crazycube.sdk.demo:id/button3")
     # initialization_sdk_03 = (By.ID, "com.android.permissioncontroller:id/permission_allow_button")
 
     # 登录
     login_sdk = (By.ID, "com.crazycube.hkmahjongtycoon.app:id/login")
     login_success = (By.ID,"com.crazycube.hkmahjongtycoon.app:id/button3")
+
+    # 购买
+    bug_submit = (By.ID, "com.crazycube.sdk.demo:id/buy_gold")
+    click_confirm_payment = (By.XPATH, '//*[@class="Btn4WvComp" and contains(text(),"確認支付")]')  # 确认支付按钮
+    x_y_07 = [[(500, 1700)], 500]# google支付
 
     # 平台浮标
     x_y_01 = [[(65, 1693)],500]
