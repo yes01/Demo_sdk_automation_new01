@@ -40,7 +40,7 @@ class LoginPageLocators:
     click_switchaccount = (By.XPATH, '//*[@class="jsx-4002802977 UserInfo_New_WV_d1"]')  # 账号切换
     click_addaccount = (By.XPATH, '//*[@class="Btn4WvComp"]')  # 添加账号按钮
     click_define = (By.XPATH, '//*[@class="Btn4WvNewComp_text"]')  # 确定按钮
-    set_account = (By.XPATH, '//*[@placeholder="請輸入郵箱/手機號碼"]')  # email、phone输入框
+    set_account = (By.XPATH, '//*[@placeholder="請輸入電郵/電話號碼"]')  # email、phone输入框
     set_pwd = (By.XPATH, '//*[@placeholder="請輸入密碼"]')  # 密码输入框
     set_captcha = (By.XPATH, '//*[@placeholder="請輸入驗證碼"]')  # 验证码输入框
     click_captcha_login = (By.XPATH, '//*[@class="M4L_WV_d1_sp6" and contains(text(),"驗證碼登錄")]')  # 验证码登录按钮
@@ -64,7 +64,7 @@ class LoginPageLocators:
     click_password_set = (By.XPATH, '//*[contains(text(),"設置密碼") and @class="jsx-3199281062"]')  # 进入设置密码界面
     click_password01 = (By.XPATH, '//*[contains(text(),"修改密碼") and @class="jsx-3199281062"]')  # 进入修改密码界面
     click_password02 = (By.XPATH, '//*[contains(text(),"舊密碼修改") and @class="CEPP_WV_d1_d1"]')  # 进入修改旧密码界面
-    click_password03 = (By.XPATH, '//*[contains(text(),"郵箱驗證碼修改") and @class="CEPP_WV_d1_d1"]')  # 进入email修改密码界面
+    click_password03 = (By.XPATH, '//*[contains(text(),"電郵驗證碼修改") and @class="CEPP_WV_d1_d1"]')  # 进入email修改密码界面
     click_password04 = (By.XPATH, '//*[contains(text(),"手機驗證碼修改") and @class="CEPP_WV_d1_d1"]')  # 进入phone修改密码界面
     set_password01 = (By.XPATH, '//*[@id="ChangePassword_WV"]/div[2]/div[1]/div[1]/input')  # 设置密码输入框&旧密码输入框&修改密码账号显示框_email、phone
     set_password02 = (By.XPATH, '//*[@id="ChangePassword_WV"]/div[2]/div[2]/div[1]/input') # 设置密码输入框&新密码输入框&修改密码验证码输入框_email、phone
@@ -76,9 +76,9 @@ class LoginPageLocators:
     click_binding_phone = (By.XPATH, '//*[@id="__next"]/div/div/div[2]/div[2]/div[3]')  # 进入绑定电话界面
     click_binding_facebook = (By.XPATH, '//*[@id="__next"]/div/div/div[2]/div[2]/div[6]')  # 进入绑定facebook界面
     click_binding_google = (By.XPATH, '//*[@id="__next"]/div/div/div[2]/div[2]/div[7]')  # 进入绑定google界面
-    set_binding01 = (By.XPATH, '//*[@placeholder="請輸入郵箱"]')  # 邮箱输入框
+    set_binding01 = (By.XPATH, '//*[@placeholder="請輸入電郵"]')  # 邮箱输入框
     set_binding02 = (By.XPATH, '//*[@placeholder="請輸入驗證碼"]')  # 验证码输入框
-    set_binding03 = (By.XPATH, '//*[@placeholder="請輸入手機號碼"]')  # 电话输入框
+    set_binding03 = (By.XPATH, '//*[@placeholder="請輸入電話號碼"]')  # 电话输入框
     click_submit = (By.XPATH, '//*[@class="Btn4WvNewComp_text"]')  # 绑定邮箱、电话确认按钮&设置密码、修改密码确认按钮_旧密码、email、phone
 
     # 登录
